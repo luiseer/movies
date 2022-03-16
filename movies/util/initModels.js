@@ -1,7 +1,8 @@
-import Actors from "../models/actors.model.js";
-import Movie from "../models/movies.models.js";
-import Review from "../models/reviews.model.js";
-import User from "../models/reviews.model.js";
+const {Actors} = require('../models/actors.model')
+const {User} = require('../models/user.model')
+const {Movie} = require('../models/movies.models')
+const {Review} = require('../models/reviews.model')
+const {ActorMovies} = require('../models/actorMovies.model')
 
 const initModels = () => {
   User.hasMany(Review);
