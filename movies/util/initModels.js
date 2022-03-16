@@ -1,9 +1,20 @@
-import ActorMovies from "../models/actorMovies.model.js";
-import Actors from "../models/actors.model.js";
-import Movie from "../models/movies.models.js";
-import Review from "../models/reviews.model.js";
-import User from "../models/reviews.model.js";
+const { ActorMovies } = require("../models/actorMovies.model");
+const { Actors } = require("../models/actors.model");
+const { Movie } = require("../models/movies.models");
+const { Review } = require("../models/reviews.model");
+const { User } = require("../models/user.model");
+
 
 const initModels = () => {
-    User
-}
+
+  User.hasMany(Review);
+  Review.belongsTo(User);
+
+  Movie.hasMany(Review);
+  Review.belongsTo(Movie);
+
+  Movie.hasMany(Actors);
+  Actors.belongsTo(Movie);
+};
+
+module.exports = { initModels };

@@ -2,7 +2,6 @@
   "name": "movies",
   "version": "1.0.0",
   "description": "entregable de calse node js",
-  "type": "module",
   "main": "app.js",
   "scripts": {
     "dev": "nodemon server.js",

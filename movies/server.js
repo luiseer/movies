@@ -1,5 +1,5 @@
-import app from './app.js';
-import sequelize from './util/db.js';
+const {app} = require('./app');
+const { sequelize } = require('./util/database');
 
 
 sequelize

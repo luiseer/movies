@@ -1,5 +1,5 @@
-import { DataTypes } from 'sequelize/types';
-import sequelize from '../util/db.js';
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../util/database');
 
 const Movie = sequelize.define('movie', {
   id: {
@@ -39,4 +39,4 @@ const Movie = sequelize.define('movie', {
   }
 });
 
-export default Movie
+module.exports = {Movie}
