@@ -16,4 +16,4 @@ const filterObj = (obj, ...allowedFields) => {
 	return newObj;
 };
 
-module.exports = { filterObj };
+export default filterObj
