@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../util/database');
 
-const Review = sequelize.define('REVIEW', {
+const Review = sequelize.define('review', {
   id: {
     primaryKey: true,
     autoIncrement: true,
