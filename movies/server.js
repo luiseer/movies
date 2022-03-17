@@ -1,10 +1,8 @@
 const { app } = require('./app');
 const {initModels} = require('./util/initModels')
-const {Actors} = require('./models/actors.model')
-const {User} = require('./models/user.model')
-const {Movie} = require('./models/movies.models')
-const {Review} = require('./models/reviews.model')
-const {ActorMovies} = require('./models/actorMovies.model')
+
+
+
 
 
 
@@ -16,7 +14,7 @@ sequelize
   .then(() => console.log('Database authenticated'))
   .catch((err) => console.log(err));
 
-// initModels()
+initModels()
 
 sequelize
   .sync()
