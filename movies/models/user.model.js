@@ -23,7 +23,7 @@ const User = sequelize.define('user', {
     allowNull: false
   },
   status: {
-    type: DataTypes.STRING(10),
+    type: DataTypes.STRING(15),
     defaultValue: 'active',
     allowNull: false
   },

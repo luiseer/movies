@@ -4,18 +4,19 @@ const { catchAsync } = require('../util/catchAsync');
 const { AppError } = require('../util/appError');
 const { filterObj } = require('../util/filterObj');
 
-exports.getAllUser = catchAsync(async (req, res, next) => {
+exports.getAllUsers = catchAsync(async (req, res, next) =>{
   const users = await User.findAll({
-    where: { status: 'active' }
-  });
-
+    where: {status: 'active'}
+  })
   res.status(200).json({
     status: 'success',
-    data: {
+    data:{
       users
     }
-  });
-});
+  })
+})
+
+
 exports.getUserById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const users = await User.findOne({
