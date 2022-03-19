@@ -13,30 +13,32 @@ const Movie = sequelize.define('movie', {
     allowNull: false
   },
   description: {
-    type: DataTypes.STRING(100),
-    allowNull: false
-  },
-  rating: {
     type: DataTypes.STRING(255),
     allowNull: false
   },
   duration: {
-    type: DataTypes.TIME,
+    type: DataTypes.INTEGER,
     allowNull: false
   },
-  imgUrl:{
-      type: DataTypes.STRING(100),
-      allowNull: false
+  genre: {
+    type: DataTypes.STRING(50),
+    allowNull: false
   },
-  gener:{
-      type: DataTypes.STRING(50),
-      allowNull: false
+  rating: {
+    type: DataTypes.STRING(255),
+    allowNull: false,
+    defaultValue: '1'
   },
-  status:{
-      type: DataTypes.STRING(20),
-      allowNull: false,
-      default: 'active'
+  imgUrl: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    defaultValue: 'url'
+  },
+  status: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+    defaultValue: 'active'
   }
 });
 
-module.exports = {Movie}
+module.exports = { Movie };

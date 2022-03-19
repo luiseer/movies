@@ -21,23 +21,19 @@ const Review = sequelize.define('review', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  movieId: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
   status: {
     type: DataTypes.STRING(10),
     defaultValue: 'active',
     allowNull: false
-  },
-  imgUrl:{
-      type: DataTypes.STRING(12),
-      allowNull: false
-  },
-  userId:{
-      type: DataTypes.INTEGER,
-      allowNull: false
-  },
-  movieId:{
-      type: DataTypes.INTEGER,
-      allowNull: false
-  },
+  }
 });
 
-module.exports = {Review}
+module.exports = { Review };

@@ -2,14 +2,13 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../util/database');
 
 const User = sequelize.define('user', {
-  
   id: {
     primaryKey: true,
     autoIncrement: true,
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  userName: {
+  username: {
     type: DataTypes.STRING(100),
     allowNull: false
   },
@@ -22,17 +21,16 @@ const User = sequelize.define('user', {
     type: DataTypes.STRING(255),
     allowNull: false
   },
+  role: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+    defaultValue: 'user'
+  },
   status: {
-    type: DataTypes.STRING(15),
+    type: DataTypes.STRING(20),
     defaultValue: 'active',
     allowNull: false
-  },
-  role:{
-      type: DataTypes.STRING(12),
-      allowNull: false,
-      defaultValue: 'user'
-  },
-  
+  }
 });
 
-module.exports = { User }
+module.exports = { User };

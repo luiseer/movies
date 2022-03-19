@@ -37,7 +37,6 @@ exports.getActorById = catchAsync(async (req, res, next) => {
 });
 
 exports.createNewActor = catchAsync(async (req, res, next) => {
-
   const { name, conuntry, age } = req.body;
   if (!name || !conuntry || age) {
     return next(new AppError(400, 'Must provide a valid, name, age & country'));
@@ -97,7 +96,6 @@ exports.updateActor = catchAsync(async (req, res, next) => {
   }
 });
 exports.deleteActor = catchAsync(async (req, res, next) => {
-  
   const { id } = req.params;
   const actors = await Actors.findOne({
     where: { id, status: 'active' }

@@ -1,28 +1,23 @@
 const { app } = require('./app');
-const {initModels} = require('./util/initModels')
-
-
-
-
-
+const { initModels } = require('./util/initModels');
 
 // Utils
 const { sequelize } = require('./util/database');
 
+
 sequelize
-  .authenticate({ force: true })
+  .authenticate()
   .then(() => console.log('Database authenticated'))
   .catch((err) => console.log(err));
 
-initModels()
+initModels();
 
 sequelize
-  .sync()
+  .sync({force: true})
   .then(() => console.log('Database Sync...'))
   .catch((err) => console.log(err));
 
 const PORT = process.env.PORT || 4000;
-
 
 app.listen(PORT, () => {
   console.log(`Express app running on port: ${PORT}`);
