@@ -14,12 +14,12 @@ const Review = sequelize.define('review', {
   },
   comment: {
     type: DataTypes.STRING(100),
-    unique: true,
     allowNull: false
   },
   rating: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 1
   },
   userId: {
     type: DataTypes.INTEGER,
