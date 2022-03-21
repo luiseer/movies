@@ -4,12 +4,10 @@ const { catchAsync } = require('../util/catchAsync');
 const { AppError } = require('../util/appError');
 const { filterObj } = require('../util/filterObj');
 
-
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   const user = await User.findAll({
     where: { status: 'active' }
   });
-  console.log(user);
   res.status(200).json({
     status: 'success',
     data: {
@@ -36,33 +34,38 @@ exports.getUserById = catchAsync(async (req, res, next) => {
 });
 
 exports.createNewUser = catchAsync(async (req, res, next) => {
-  const { username, email, password } = req.body;
-  if (!username || !email || !password) {
-    return next(
-      new AppError(400, 'Must provide a valid name, email, password')
-    );
-  }
-  const newUser = await User.create({
-    username,
-    email,
-    password
-  });
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      newUser
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return next(
+        new AppError(400, 'Must provide a valid name, email, password')
+      );
     }
-  });
+    const newUser = await User.create({
+      name,
+      email,
+      password
+    });
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        newUser
+      }
+    });
+  } catch (error) {
+    console.log(`este es el error ${error.message}`);
+  }
 });
+
 exports.updateUser = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const { userName, email, password } = req.body;
+  const { name, email, password } = req.body;
   if (
-    !userName ||
+    !name ||
     !email ||
     !password ||
-    userName.length === 0 ||
+    name.length === 0 ||
     email.length === 0 ||
     password.length === 0
   ) {
@@ -79,12 +82,12 @@ exports.updateUser = catchAsync(async (req, res, next) => {
   if (!users) {
     res.status(404).json({
       status: 'error',
-      msg: 'Cant user actor, invalid ID'
+      msg: 'Cant find actor, invalid ID'
     });
     return;
   }
   await users.update({
-    userName,
+    name,
     email,
     password
   });

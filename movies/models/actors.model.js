@@ -16,6 +16,10 @@ const Actors = sequelize.define('actor', {
     type: DataTypes.STRING(100),
     allowNull: false
   },
+  age: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
   rating: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -29,16 +33,12 @@ const Actors = sequelize.define('actor', {
   profilePicUrl: {
     type: DataTypes.STRING(120),
     allowNull: false,
-    defaultValue: 'url'
-  },
-  age: {
-    type: DataTypes.INTEGER,
-    allowNull: false
+    defaultValue: 'url...'
   },
   status: {
     type: DataTypes.STRING(50),
     allowNull: false,
-    default: 'active'
+    defaultValue: 'active'
   }
 });
 

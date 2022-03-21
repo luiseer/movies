@@ -37,14 +37,14 @@ exports.getActorById = catchAsync(async (req, res, next) => {
 });
 
 exports.createNewActor = catchAsync(async (req, res, next) => {
-  const { name, conuntry, age } = req.body;
-  if (!name || !conuntry || age) {
+  const { name, country, age } = req.body;
+  if (!name || !country || !age) {
     return next(new AppError(400, 'Must provide a valid, name, age & country'));
   }
   const newActor = await Actors.create({
     name,
-    conuntry,
-    age
+    age,
+    country
   });
 
   res.status(201).json({

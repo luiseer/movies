@@ -4,7 +4,6 @@ const { initModels } = require('./util/initModels');
 // Utils
 const { sequelize } = require('./util/database');
 
-
 sequelize
   .authenticate()
   .then(() => console.log('Database authenticated'))
@@ -13,7 +12,7 @@ sequelize
 initModels();
 
 sequelize
-  .sync({force: true})
+  .sync()
   .then(() => console.log('Database Sync...'))
   .catch((err) => console.log(err));
 
