@@ -10,12 +10,8 @@ const {
 
 const router = express.Router();
 
-router.get('/', getAllActors);
+router.route('/').get(getAllActors).post(createNewActor);
 
-router.route('/:id').get(getActorById).delete(deleteActor);
-
-router.post('/', createNewActor);
-
-router.patch('/:id', updateActor);
+router.route('/:id').get(getActorById).delete(deleteActor).patch(updateActor);
 
 module.exports = { actorsRouter: router };
