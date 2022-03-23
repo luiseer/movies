@@ -1,4 +1,5 @@
 const express = require('express');
+const { validateSession } = require('../middlewares/auth.middleware')
 
 const {
   getAllActors,
