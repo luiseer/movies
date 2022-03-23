@@ -5,6 +5,7 @@ const { catchAsync } = require('../util/catchAsync');
 const { AppError } = require('../util/appError');
 const { filterObj } = require('../util/filterObj');
 
+
 exports.getAllActors = catchAsync(async (req, res, next) => {
   const actors = await Actors.findAll({
     where: { status: 'active' }
