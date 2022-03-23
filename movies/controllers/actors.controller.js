@@ -57,40 +57,31 @@ exports.createNewActor = catchAsync(async (req, res, next) => {
 });
 exports.updateActor = catchAsync(async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { name, country, age } = req.body;
-    if (
-      !name ||
-      !country ||
-      !age ||
-      name.length === 0 ||
-      country.length === 0 ||
-      age.length === 0
-    ) {
-      res.status(400).json({
-        status: 'error',
-        msg: 'Must provie a name, country and age for this req'
-      });
-      return;
-    }
-
-    const actors = await Actors.findOne({
-      where: { id, status: 'active' }
-    });
-
-    if (!actors) {
+    const { id } = req.params
+    const data = filterObj(
+      req.body,
+      'name',
+      'country',
+      'age'
+    )
+    const actor = Actors.findOne({
+      where:{
+        id,
+        status: 'active'
+      }
+    })
+    if (!actor) {
       res.status(404).json({
         status: 'error',
-        msg: 'Cant update actor, invalid ID'
-      });
+        mgs: 'Cant update actor, invalid ID'
+      })
+      return
     }
+    await actor.update({...data})
 
-    await actors.update({
-      name,
-      country,
-      age
-    });
-
+    res.status(204).json({
+      status: 'success'
+    })
     res.status(204).json({ status: 'success' });
   } catch (error) {
     console.log(error);

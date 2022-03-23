@@ -57,42 +57,36 @@ exports.createNewMovie = catchAsync(async (req, res, next) => {
 });
 
 exports.updateMovie = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  const { title, description, duration, gener } = req.body;
-  if (
-    !title ||
-    !description ||
-    !duration ||
-    !gener ||
-    title.length === 0 ||
-    description.length === 0 ||
-    duration.length === 0 ||
-    gener.length === 0
-  ) {
-    res.status(400).json({
-      status: 'error',
-      mgs: 'Must provide a user name, email and password '
-    });
-    return;
-  }
-  const movies = await Movie.findOne({
-    where: { id, status: 'active' }
-  });
+  try {
+    const { id } = req.params
+    const data = filterObj(
+      req.body,
+      'title',
+      'description',
+      'duration',
+      'genre'
+    )
+    const movie = Movie.findOne({
+      where: {
+        id,
+        status: 'active'
+      }
+    })
+    if (!movie) {
+      res.status(404).json({
+        status: 'error',
+        mgs: 'Cant Update movie, invalid ID'
+      })
+      return
+    }
+    await movie.update({...data})
 
-  if (!movies) {
-    res.status(404).json({
-      status: 'error',
-      msg: 'Cant user actor, invalid ID'
-    });
-    return;
+    res.status(204).json({
+      status: 'success'
+    })
+  } catch (error) {
+    console.log(error);
   }
-  await movies.update({
-    title,
-    description,
-    duration,
-    gener
-  });
-  res.status(204).json({ status: 'success' });
 });
 exports.deleteMovie = catchAsync(async (req, res, next) => {
   const { id } = req.params;
