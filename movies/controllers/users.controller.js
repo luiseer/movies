@@ -1,4 +1,7 @@
 const { User } = require('../models/user.model');
+
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 //utils
 const { catchAsync } = require('../util/catchAsync');
 const { AppError } = require('../util/appError');
@@ -41,11 +44,21 @@ exports.createNewUser = catchAsync(async (req, res, next) => {
         new AppError(400, 'Must provide a valid name, email, password')
       );
     }
+
+    const salt = await bcrypt.genSalt(12);
+
+    const hashedPassword = await bcrypt.hash(
+      password,
+      salt
+    )
+
     const newUser = await User.create({
       name,
       email,
-      password
+      password: hashedPassword
     });
+
+    newUser.password = undefined
 
     res.status(200).json({
       status: 'success',
@@ -56,6 +69,29 @@ exports.createNewUser = catchAsync(async (req, res, next) => {
   } catch (error) {
     console.log(`este es el error ${error.message}`);
   }
+});
+
+exports.loginUser = catchAsync(async (req, res, next) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({
+    where: {
+      email,
+      status: 'active'
+    }
+  });
+
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    return next(new AppError(400, 'Credentials are invalid'));
+  }
+
+  const token = await jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN
+  });
+
+  res.status(200).json({
+    status: 'success',
+    data: { token }
+  });
 });
 
 exports.updateUser = catchAsync(async (req, res, next) => {
