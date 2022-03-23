@@ -12,6 +12,10 @@ const router = express.Router();
 
 router.route('/').get(getAllActors).post(createNewActor);
 
-router.route('/:id').get(getActorById).delete(deleteActor).patch(updateActor);
+router
+  .route('/:id')
+  .get(getActorById)
+  .delete(deleteActor)
+  .patch(updateActor);
 
 module.exports = { actorsRouter: router };
