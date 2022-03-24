@@ -30,7 +30,7 @@ const Movie = sequelize.define('movie', {
     defaultValue: '1'
   },
   imgUrl: {
-    type: DataTypes.STRING(100),
+    type: DataTypes.STRING(255),
     allowNull: false,
     defaultValue: 'url'
   },
