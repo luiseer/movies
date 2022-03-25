@@ -14,5 +14,4 @@ const initModels = () => {
   Movie.belongsToMany(Actors, { through: ActorMovies });
   Actors.belongsToMany(Movie, { through: ActorMovies });
 };
-
 module.exports = { initModels };
