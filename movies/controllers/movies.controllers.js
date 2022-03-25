@@ -1,9 +1,12 @@
 const { Movie } = require('../models/movies.models');
+const { User } = require('../models/user.model');
+
 //utils
 const { catchAsync } = require('../util/catchAsync');
 const { AppError } = require('../util/appError');
 const { filterObj } = require('../util/filterObj');
 const { Review } = require('../models/reviews.model');
+const { Actors } = require('../models/actors.model');
 
 exports.getAllMovie = catchAsync(async (req, res, next) => {
   const movies = await Movie.findAll({
@@ -33,7 +36,7 @@ exports.getMovieById = catchAsync(async (req, res, next) => {
   });
 });
 exports.createNewMovie = catchAsync(async (req, res, next) => {
-  const { title, description, duration, genre } = req.body;
+  const { title, description, duration, genre, actors } = req.body;
   if (!title || !description || !duration || !genre) {
     return next(
       new AppError(

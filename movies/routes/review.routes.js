@@ -1,4 +1,5 @@
 const express = require('express');
+const { validateSession } = require('../middlewares/auth.middleware');
 
 const {
   getAllReview,
@@ -9,6 +10,8 @@ const {
 } = require('../controllers/review.controller');
 
 const router = express.Router();
+
+router.use(validateSession);
 
 router.route('/').get(getAllReview).post(createReview);
 router

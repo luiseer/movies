@@ -1,4 +1,5 @@
 const express = require('express');
+const { validateSession } = require('../middlewares/auth.middleware');
 
 const {
   getAllMovie,
@@ -11,7 +12,12 @@ const { upload } = require('../util/multer');
 
 const router = express.Router();
 
-router.route('/').get(getAllMovie).post(upload.single('movieImg'), createNewMovie);
+router.use(validateSession);
+
+router
+  .route('/')
+  .get(getAllMovie)
+  .post(upload.single('movieImg'), createNewMovie);
 
 router.route('/:id').get(getMovieById).delete(deleteMovie).patch(updateMovie);
 
