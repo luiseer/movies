@@ -17,8 +17,13 @@ router.post('/', createNewUser);
 
 router.use(validateSession);
 
-router.route('/').get(getAllUsers);
+router
+  .route('/').get(getAllUsers);
 
-router.route('/:id').get(getUserById).patch(updateUser).delete(deleteUser);
+router
+  .route('/:id')
+  .get(getUserById)
+  .patch(updateUser)
+  .delete(deleteUser);
 
 module.exports = { usersRouter: router };

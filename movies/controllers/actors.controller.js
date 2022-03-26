@@ -1,6 +1,7 @@
-//models
 const { Actors } = require('../models/actors.model');
-//utils
+const { ActorMovies } = require('../models/actorMovies.model');
+const { Movie } = require('../models/movies.models');
+
 const { catchAsync } = require('../util/catchAsync');
 const { AppError } = require('../util/appError');
 const { filterObj } = require('../util/filterObj');
@@ -8,7 +9,8 @@ const { filterObj } = require('../util/filterObj');
 
 exports.getAllActors = catchAsync(async (req, res, next) => {
   const actors = await Actors.findAll({
-    where: { status: 'active' }
+    where: { status: 'active' },
+    include:[{model: Movie, through: ActorMovies}]
   });
 
   res.status(200).json({
@@ -77,7 +79,7 @@ exports.updateActor = catchAsync(async (req, res, next) => {
       })
       return
     }
-    await actor.update({...data})
+    (await actor).update({...data})
 
     res.status(204).json({
       status: 'success'

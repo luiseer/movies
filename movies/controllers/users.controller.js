@@ -10,7 +10,7 @@ const { filterObj } = require('../util/filterObj');
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   const user = await User.findAll({
     attributes: { exclude: ['password'] },
-    where: { status: 'active' }
+    where: { status: 'active' },
   });
   res.status(200).json({
     status: 'success',
@@ -23,6 +23,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 exports.getUserById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const users = await User.findOne({
+    attributes: { exclude: ['password'] },
     where: { id, status: 'active' }
   });
   if (!users) {
@@ -39,8 +40,8 @@ exports.getUserById = catchAsync(async (req, res, next) => {
 
 exports.createNewUser = catchAsync(async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
+    const { name, email, password, role } = req.body;
+    if (!name || !email || !password, !role) {
       return next(
         new AppError(400, 'Must provide a valid name, email, password')
       );
@@ -53,7 +54,8 @@ exports.createNewUser = catchAsync(async (req, res, next) => {
     const newUser = await User.create({
       name,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      role
     });
 
     newUser.password = undefined;
@@ -123,6 +125,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 exports.deleteUser = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const users = await User.findOne({
+    attributes: { exclude: ['password'] },
     where: { id, status: 'active' }
   });
 

@@ -1,5 +1,5 @@
 const express = require('express');
-const { validateSession } = require('../middlewares/auth.middleware');
+const { validateSession, roleUserAdmin } = require('../middlewares/auth.middleware');
 
 const {
   getAllMovie,
@@ -17,8 +17,12 @@ router.use(validateSession);
 router
   .route('/')
   .get(getAllMovie)
-  .post(upload.single('movieImg'), createNewMovie);
+  .post(roleUserAdmin, upload.single('movieImg'), createNewMovie);
 
-router.route('/:id').get(getMovieById).delete(deleteMovie).patch(updateMovie);
+router
+  .route('/:id')
+  .get(getMovieById)
+  .delete(roleUserAdmin, deleteMovie)
+  .patch(roleUserAdmin, updateMovie);
 
 module.exports = { moviesRouter: router };

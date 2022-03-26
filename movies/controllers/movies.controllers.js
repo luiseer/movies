@@ -1,12 +1,14 @@
+const {ref, uploadBytes, getDownloadURL} = require('firebase/storage')
+
 const { Movie } = require('../models/movies.models');
 const { User } = require('../models/user.model');
+const { Actors } = require('../models/actors.model');
+const { Review } = require('../models/reviews.model');
 
-//utils
 const { catchAsync } = require('../util/catchAsync');
 const { AppError } = require('../util/appError');
 const { filterObj } = require('../util/filterObj');
-const { Review } = require('../models/reviews.model');
-const { Actors } = require('../models/actors.model');
+const { storage }= require ('../util/firebase')
 
 exports.getAllMovie = catchAsync(async (req, res, next) => {
   const movies = await Movie.findAll({
@@ -46,11 +48,21 @@ exports.createNewMovie = catchAsync(async (req, res, next) => {
     );
   }
 
+  const fileExtension = req.file.originalname.spli('.')[1]
+
+  const imgRef = ref(
+    storage,
+    `imgs/movies/${title}-${Date.now()}.${fileExtension}`
+  )
+
+  const imgUploaded = await uploadBytes(imgRef, req.file.buffer)
+
   const newMovie = await Movie.create({
     title,
     description,
     duration,
-    genre
+    genre,
+    imgUrl: imgUploaded.metadata.fullPath
   });
 
   res.status(200).json({
@@ -84,7 +96,7 @@ exports.updateMovie = catchAsync(async (req, res, next) => {
       })
       return
     }
-    await movie.update({...data})
+    (await movie).update({...data})
 
     res.status(204).json({
       status: 'success'
@@ -106,6 +118,6 @@ exports.deleteMovie = catchAsync(async (req, res, next) => {
     return;
   }
 
-  await movies.update({ status: 'delete' });
-  res.status(204).json({ status: 'success' });
+  (await movies).update({status: 'delete'})
+  return res.status(204).json({ status: 'success' });
 });
