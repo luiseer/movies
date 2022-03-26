@@ -58,11 +58,3 @@ Objective: Implemente login authorization
   Apply this middleware on the endpoint that gets all actors to see if it works.
 
 
-
-FIREBASE_API_KEY=AIzaSyDiAjgj_VxQ7hbHqPUqFUiSYjePY0VEMbc
-FIREBASE_AUTH_DOMAIN=multer-project-e9f6b.firebaseapp.com
-FIREBASE_PROJECT_ID=multer-project-e9f6b
-FIREBASE_STORAGE_BUCKET=multer-project-e9f6b.appspot.com
-FIREBASE_MESSAGE=786656898128
-FIREBASE_APP_ID=1:786656898128:web:a383eeacd9e5d29bbab555
-FIREBASE_MEASUREMENT_ID=G-81XMWGPERH
