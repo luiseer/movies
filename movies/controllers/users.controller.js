@@ -1,145 +1,168 @@
-const { User } = require('../models/user.model');
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+const dotenv = require('dotenv')
 
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-//utils
-const { catchAsync } = require('../util/catchAsync');
-const { AppError } = require('../util/appError');
-const { filterObj } = require('../util/filterObj');
+// Utils
+const { filterObj } = require('../util/filterObj')
+const { handleError } = require('../util/handleError')
+const { AppError } = require('../util/appError')
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const user = await User.findAll({
-    where: { status: 'active' }
-  });
-  res.status(200).json({
-    status: 'success',
-    data: {
-      user
-    }
-  });
-});
+const models = require('../models/index')
 
-exports.getUserById = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  const users = await User.findOne({
-    where: { id, status: 'active' }
-  });
-  if (!users) {
-    return next(new AppError(404, 'no users found wiht the given ID'));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      users
-    }
-  });
-});
-
-exports.createNewUser = catchAsync(async (req, res, next) => {
-  try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
-      return next(
-        new AppError(400, 'Must provide a valid name, email, password')
-      );
-    }
-
-    const salt = await bcrypt.genSalt(12);
-
-    const hashedPassword = await bcrypt.hash(
-      password,
-      salt
-    )
-
-    const newUser = await User.create({
-      name,
-      email,
-      password: hashedPassword
-    });
-
-    newUser.password = undefined
+exports.getAllUsers = handleError(
+  async (req, res, next) => {
+    const users = await models.user.findAll({
+      where: { status: 'active' },
+      attributes: {
+        exclude: ['password']
+      }
+    })
 
     res.status(200).json({
       status: 'success',
-      data: {
-        newUser
-      }
-    });
-  } catch (error) {
-    console.log(`este es el error ${error.message}`);
+      data: { users }
+    })
   }
-});
+)
 
-exports.loginUser = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({
-    where: {
-      email,
-      status: 'active'
+exports.getUserByID = handleError(
+  async (req, res, next) => {
+    const { id } = req.params
+
+    const user = await models.user.findOne({
+      where: { status: 'active', id },
+      attributes: { exclude: ['password'] }
+    })
+
+    if (!user) {
+      return next(
+        new AppError(400, 'Cannot find a user, invalid ID')
+      )
     }
-  });
 
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return next(new AppError(400, 'Credentials are invalid'));
+    res.status(200).json({
+      status: 'success',
+      data: { user }
+    })
+  }
+)
+
+exports.createUser = handleError(async (req, res, next) => {
+  const { username, email, password } = req.body
+
+  if (!username || !email || !password) {
+    return next(
+      new AppError(
+        404,
+        'Must provide a name, email and password'
+      )
+    )
   }
 
-  const token = await jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN
-  });
+  const salt = await bcrypt.genSalt(12)
+
+  const hashedPassword = await bcrypt.hash(password, salt)
+
+  const newUser = await models.user.create({
+    username,
+    email,
+    password: hashedPassword
+  })
+
+  newUser.password = undefined
+
+  res.status(201).json({
+    status: 'success',
+    data: { newUser }
+  })
+})
+
+exports.updateUser = handleError(async (req, res, next) => {
+  const { id } = req.params
+
+  const data = filterObj(req.body, 'email', 'username')
+
+  const user = await models.user.findOne({
+    where: { id, status: 'active' },
+    attributes: { exclude: ['password'] }
+  })
+
+  if (!user) {
+    return next(
+      new AppError(404, 'Cannot update user, invalid ID.')
+    )
+  }
+
+  await user.update({ ...data })
+
+  res.status(200).json({
+    status: 'success',
+    data: { user }
+  })
+})
+
+exports.updateUserRole = handleError(
+  async (req, res, next) => {
+    const { id } = req.params
+
+    const data = filterObj(req.body, 'role')
+  }
+)
+
+exports.deleteUser = handleError(async (req, res, next) => {
+  const { id } = req.params
+
+  const user = await models.user.findOne({
+    where: { id, status: 'active' },
+    attributes: { exclude: ['password'] }
+  })
+
+  if (!user) {
+    return next(
+      new AppError(404, 'Cannot delete user, invalid ID.')
+    )
+  }
+
+  await user.update({ status: 'deleted' })
+
+  res.status(200).json({
+    status: 'success',
+    data: { user }
+  })
+})
+
+exports.loginUser = async (req, res, next) => {
+  const { email, password } = req.body
+
+  if (!email || !password) {
+    return next(
+      new AppError(400, 'Please provide user and email.')
+    )
+  }
+  // Find user given an email and a status 'active'
+  const user = await models.user.findOne({
+    where: { email, status: 'active' }
+  })
+
+  // Compare req.body password (User password) vs hashed user password
+  if (
+    !user ||
+    !(await bcrypt.compare(password, user.password))
+  ) {
+    return next(new AppError(400, 'Credentials invalid'))
+  }
+
+  // Create JWT
+  const token = await jwt.sign(
+    { id: user.id },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_EXPIRES_IN
+    }
+  )
 
   res.status(200).json({
     status: 'success',
     data: { token }
-  });
-});
-
-exports.updateUser = catchAsync(async (req, res, next) => {
-  try {
-    const { id } = req.params
-    const data = filterObj(
-      req.body,
-      'name',
-      'email'
-    )
-    const user = User.findOne({
-      where: {
-        id,
-        status: 'active'
-      }
-    })
-  if (!user) {
-    res.status(404).json({
-      status: 'error',
-      mgs: 'Cant update user, invalid ID'
-    })
-    return
-  }
-
-  await (await user).update({...data})
-
-  res.status(204).json({
-    status: 'success'
   })
-  } catch (error) {
-    console.log(error.message);
-  }
-});
-
-exports.deleteUser = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  const users = await User.findOne({
-    where: { id, status: 'active' }
-  });
-
-  if (!users) {
-    res.status(404).json({
-      status: 'error',
-      msg: 'Cant delete actor, invalid ID'
-    });
-    return;
-  }
-
-  await users.update({ status: 'delete' });
-  res.status(204).json({ status: 'success' });
-});
+}

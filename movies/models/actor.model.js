@@ -1,36 +1,39 @@
 const { DataTypes } = require('sequelize');
+
 const { sequelize } = require('../util/database');
 
-const User = sequelize.define('user', {
+const Actor = sequelize.define('actor', {
   id: {
     primaryKey: true,
     autoIncrement: true,
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  userName: {
-    type: DataTypes.STRING(100),
+  name: {
+    type: DataTypes.STRING(20),
     allowNull: false
   },
-  email: {
-    type: DataTypes.STRING(100),
-    unique: true,
+  country: {
+    type: DataTypes.STRING(20),
     allowNull: false
   },
-  password: {
-    type: DataTypes.STRING(255),
+  rating: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  age: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  profilePic: {
+    type: DataTypes.STRING(25),
     allowNull: false
   },
   status: {
     type: DataTypes.STRING(10),
     defaultValue: 'active',
     allowNull: false
-  },
-  role: {
-    type: DataTypes.STRING(10),
-    defaultValue: 'default-user',
-    allowNull: false
   }
 });
 
-module.exports = { User };
+module.exports = { Actor };

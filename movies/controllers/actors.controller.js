@@ -1,106 +1,199 @@
-//models
-const { Actors } = require('../models/actors.model');
-//utils
-const { catchAsync } = require('../util/catchAsync');
-const { AppError } = require('../util/appError');
-const { filterObj } = require('../util/filterObj');
+const {
+  ref,
+  uploadBytes,
+  getDownloadURL
+} = require('firebase/storage')
 
+// Utils
+const { filterObj } = require('../util/filterObj')
+const { handleError } = require('../util/handleError')
+const { AppError } = require('../util/appError')
+const { storage } = require('../util/firebase')
 
-exports.getAllActors = catchAsync(async (req, res, next) => {
-  const actors = await Actors.findAll({
-    where: { status: 'active' }
-  });
+// Models
+const models = require('../models/index')
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      actors
-    }
-  });
-});
+// ===================================================================================
 
-exports.getActorById = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  const actors = await Actors.findOne({
-    where: { id, status: 'active' }
-  });
+exports.getAllActors = handleError(
+  async (req, res, next) => {
+    const actors = await models.actor.findAll({
+      where: { status: 'active' },
+      include: [{ model: models.movie }]
+    })
 
-  if (!actors) {
-    return next(new AppError(404, 'no actors found wiht the given id'));
+    let movie = models.movie
+
+    // Iterate over the movies, and for each movie get the url from firebase
+    // and use getDownloadUrl that firebase provide us to make it an accesible URL
+    const actorsPromises = actors.map(
+      async ({
+        id,
+        name,
+        country,
+        age,
+        rating,
+        profile_pic,
+        createdAt,
+        updatedAt,
+        movies
+      }) => {
+        const imgRef = ref(storage, profile_pic)
+
+        const imgDownloadUrl = await getDownloadURL(imgRef)
+
+        return {
+          id,
+          name,
+          country,
+          age,
+          rating,
+          profile_pic: imgDownloadUrl,
+          createdAt,
+          updatedAt,
+          movies
+        }
+      }
+    )
+
+    const resolvedActors = await Promise.all(actorsPromises)
+
+    res.status(200).json({
+      status: 'success',
+      data: { actors: resolvedActors }
+    })
   }
+)
 
-  res.status(200).json({
-    sutatus: 'success',
-    data: {
-      actors
-    }
-  });
-});
+// ===================================================================================
 
-exports.createNewActor = catchAsync(async (req, res, next) => {
-  const { name, country, age } = req.body;
-  if (!name || !country || !age) {
-    return next(new AppError(400, 'Must provide a valid, name, age & country'));
-  }
-  const newActor = await Actors.create({
-    name,
-    age,
-    country
-  });
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      newActor
-    }
-  });
-});
-exports.updateActor = catchAsync(async (req, res, next) => {
-  try {
+exports.getActorByID = handleError(
+  async (req, res, next) => {
     const { id } = req.params
+
+    const actor = await models.actor.findOne({
+      where: { status: 'active', id }
+    })
+
+    if (!actor) {
+      return next(
+        new AppError(
+          400,
+          'Cannot find an actor, invalid ID'
+        )
+      )
+    }
+    res.status(200).json({
+      status: 'success',
+      data: { actor }
+    })
+  }
+)
+
+// ===================================================================================
+
+exports.createActor = handleError(
+  async (req, res, next) => {
+    const { name, country, age, profile_pic, rating } =
+      req.body
+
+    // Upload img to firebase
+    const fileExtension =
+      req.file.originalname.split('.')[1]
+
+    const imgRef = ref(
+      storage,
+      `imgs/actors/${name}-${Date.now()}.${fileExtension}`
+    )
+
+    const imgUploaded = await uploadBytes(
+      imgRef,
+      req.file.buffer
+    )
+    if (!name || !country || !age || !rating) {
+      return next(
+        new AppError(
+          400,
+          'Must provide a name, country age and profile pic.'
+        )
+      )
+    }
+
+    const actor = await models.actor.create({
+      name,
+      country,
+      age,
+      profile_pic: imgUploaded.metadata.fullPath,
+      rating
+    })
+
+    res.status(201).json({
+      status: 'success',
+      data: { actor }
+    })
+  }
+)
+
+// ===================================================================================
+
+exports.updateActor = handleError(
+  async (req, res, next) => {
+    const { id } = req.params
+
     const data = filterObj(
       req.body,
       'name',
       'country',
-      'age'
+      'age',
+      'rating',
+      'profile_pic'
     )
-    const actor = Actors.findOne({
-      where:{
-        id,
-        status: 'active'
-      }
+
+    const actor = await models.actor.findOne({
+      where: { id, status: 'active' }
     })
+
     if (!actor) {
-      res.status(404).json({
-        status: 'error',
-        mgs: 'Cant update actor, invalid ID'
-      })
-      return
+      return next(
+        new AppError(
+          400,
+          'Cannot update actor, invalid ID.'
+        )
+      )
     }
-    await actor.update({...data})
 
-    res.status(204).json({
-      status: 'success'
+    await actor.update({ ...data })
+
+    res
+      .status(200)
+      .json({ status: 'success', data: { actor } })
+  }
+)
+
+// ===================================================================================
+
+exports.deleteActor = handleError(
+  async (req, res, next) => {
+    const { id } = req.params
+
+    const actor = await models.actor.findOne({
+      where: { id, status: 'active' }
     })
-    res.status(204).json({ status: 'success' });
-  } catch (error) {
-    console.log(error);
-  }
-});
-exports.deleteActor = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  const actors = await Actors.findOne({
-    where: { id, status: 'active' }
-  });
 
-  if (!actors) {
-    res.status(404).json({
-      status: 'error',
-      msg: 'Cant delete actor, invalid ID'
-    });
-    return;
-  }
+    if (!actor) {
+      return next(
+        new AppError(
+          400,
+          'Cannot delete actor, invalid ID.'
+        )
+      )
+    }
 
-  await actors.update({ status: 'delete' });
-  res.status(204).json({ status: 'success' });
-});
+    await actor.update({ status: 'deleted' })
+
+    res.status(200).json({
+      status: 'success',
+      message: 'deleted'
+    })
+  }
+)

@@ -1,55 +1,84 @@
-const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv');
-const { promisify } = require('util');
+const jwt = require('jsonwebtoken')
+const dotenv = require('dotenv')
+const { promisify } = require('util')
 
-// Models
-const { User } = require('../models/user.model');
+//Models
+const models = require('../models/index')
 
 // Utils
-const { AppError } = require('../util/appError');
-const { catchAsync } = require('../util/catchAsync');
+const { AppError } = require('../util/appError')
+const { handleError } = require('../util/handleError')
 
-dotenv.config({ path: './config.env' });
+dotenv.config({ path: './.env' })
 
-exports.validateSession = catchAsync(
+exports.validateSession = handleError(
   async (req, res, next) => {
     // Extract token from headers
-    let token;
+
+    let token
 
     if (
       req.headers.authorization &&
       req.headers.authorization.startsWith('Bearer')
     ) {
-      // Bearer token123.split(' ') -> [Bearer, token123]
-      token = req.headers.authorization.split(' ')[1];
+      token = req.headers.authorization.split(' ')[1]
+      // return next(new AppError(400, 'Not a valid session'))
     }
 
     if (!token) {
-      return next(new AppError(401, 'Invalid session'));
+      return next(new AppError(401, 'Invalid session.'))
     }
+
+    console.log(token)
 
     // Verify that token is still valid
     const decodedToken = await promisify(jwt.verify)(
       token,
       process.env.JWT_SECRET
-    );
+    )
 
-    // Validate that the id the token contains belongs to a valid user
-    // SELECT id, email FROM users;
-    const user = await User.findOne({
-      where: { id: decodedToken.id, status: 'active' },
-      attributes: {
-        exclude: ['password']
-      }
-    });
+    if (!decodedToken) {
+      return next(new AppError(401, 'Invalid session'))
+    }
+
+    // Validate that the id that the token contains belongs to a valid user
+    const user = await models.user.findOne({
+      where: {
+        id: decodedToken.id,
+        status: 'active'
+      },
+      attributes: { exclude: ['password'] }
+    })
+
+    console.log(user)
 
     if (!user) {
-      return next(new AppError(401, 'Invalid session'));
+      return next(
+        new AppError(
+          401,
+          'This user is no longer available.'
+        )
+      )
     }
 
     req.currentUser = user
 
     // Grant access
-    next();
+    next()
   }
-);
+)
+
+exports.isAdmin = (roles) => {
+  return handleError(async (req, res, next) => {
+    // const id = req.currentUser.id
+
+    // const user = await models.user.findOne({
+    //   where: { status: 'active', id: id }
+    // })
+
+    if (!roles.includes(req.currentUser.role)) {
+      return next(new AppError(403, 'Access denied'))
+    }
+    next()
+  })
+}
