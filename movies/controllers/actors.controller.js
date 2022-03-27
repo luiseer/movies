@@ -1,3 +1,6 @@
+const { ref, uploadBytes, getDownloadURL } = require('firebase/storage');
+
+
 const { Actors } = require('../models/actors.model');
 const { ActorMovies } = require('../models/actorMovies.model');
 const { Movie } = require('../models/movies.models');
@@ -5,12 +8,12 @@ const { Movie } = require('../models/movies.models');
 const { catchAsync } = require('../util/catchAsync');
 const { AppError } = require('../util/appError');
 const { filterObj } = require('../util/filterObj');
-
+const { storage } = require('../util/firebase');
 
 exports.getAllActors = catchAsync(async (req, res, next) => {
   const actors = await Actors.findAll({
     where: { status: 'active' },
-    include:[{model: Movie, through: ActorMovies}]
+    include: [{ model: Movie, through: ActorMovies }]
   });
 
   res.status(200).json({
@@ -26,7 +29,6 @@ exports.getActorById = catchAsync(async (req, res, next) => {
   const actors = await Actors.findOne({
     where: { id, status: 'active' }
   });
-
   if (!actors) {
     return next(new AppError(404, 'no actors found wiht the given id'));
   }
@@ -40,14 +42,26 @@ exports.getActorById = catchAsync(async (req, res, next) => {
 });
 
 exports.createNewActor = catchAsync(async (req, res, next) => {
-  const { name, country, age } = req.body;
-  if (!name || !country || !age) {
+  const { name, country, age, rating } = req.body;
+  if ((!name || !country || !age, !rating)) {
     return next(new AppError(400, 'Must provide a valid, name, age & country'));
   }
+
+  const fileExtension = req.file.originalname.split('.')[1];
+
+  const imgRef = ref(
+    storage,
+    `imgs/actors${name}-${Date.now()}.${fileExtension}}`
+  );
+
+  const imgUploaded = await uploadBytes(imgRef, req.file.buffer);
+
   const newActor = await Actors.create({
     name,
     age,
-    country
+    country,
+    rating,
+    profilePicUrl: imgUploaded.metadata.fullPath,
   });
 
   res.status(201).json({
@@ -57,38 +71,35 @@ exports.createNewActor = catchAsync(async (req, res, next) => {
     }
   });
 });
+
 exports.updateActor = catchAsync(async (req, res, next) => {
   try {
-    const { id } = req.params
-    const data = filterObj(
-      req.body,
-      'name',
-      'country',
-      'age'
-    )
+    const { id } = req.params;
+    const data = filterObj(req.body, 'name', 'country', 'age, rating');
     const actor = Actors.findOne({
-      where:{
+      where: {
         id,
         status: 'active'
       }
-    })
+    });
     if (!actor) {
       res.status(404).json({
         status: 'error',
         mgs: 'Cant update actor, invalid ID'
-      })
-      return
+      });
+      return;
     }
-    (await actor).update({...data})
+    (await actor).update({ ...data });
 
     res.status(204).json({
       status: 'success'
-    })
+    });
     res.status(204).json({ status: 'success' });
   } catch (error) {
     console.log(error);
   }
 });
+
 exports.deleteActor = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const actors = await Actors.findOne({

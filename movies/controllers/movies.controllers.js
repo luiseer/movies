@@ -1,18 +1,19 @@
-const {ref, uploadBytes, getDownloadURL} = require('firebase/storage')
+const { ref, uploadBytes, getDownloadURL } = require('firebase/storage');
 
 const { Movie } = require('../models/movies.models');
 const { User } = require('../models/user.model');
 const { Actors } = require('../models/actors.model');
 const { Review } = require('../models/reviews.model');
+const { ActorMovies } = require('../models/actorMovies.model');
 
 const { catchAsync } = require('../util/catchAsync');
 const { AppError } = require('../util/appError');
 const { filterObj } = require('../util/filterObj');
-const { storage }= require ('../util/firebase')
+const { storage } = require('../util/firebase');
 
 exports.getAllMovie = catchAsync(async (req, res, next) => {
   const movies = await Movie.findAll({
-    include: [{model: Review}],
+    include: [{ model: Actors }],
     where: { status: 'active' }
   });
   res.status(200).json({
@@ -22,6 +23,7 @@ exports.getAllMovie = catchAsync(async (req, res, next) => {
     }
   });
 });
+
 exports.getMovieById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const movies = await Movie.findOne({
@@ -37,6 +39,7 @@ exports.getMovieById = catchAsync(async (req, res, next) => {
     }
   });
 });
+
 exports.createNewMovie = catchAsync(async (req, res, next) => {
   const { title, description, duration, genre, actors } = req.body;
   if (!title || !description || !duration || !genre) {
@@ -47,15 +50,17 @@ exports.createNewMovie = catchAsync(async (req, res, next) => {
       )
     );
   }
+  console.log(req.file);
 
-  const fileExtension = req.file.originalname.spli('.')[1]
+  const fileExtension = req.file.originalname.split('.')[1];
+
 
   const imgRef = ref(
     storage,
     `imgs/movies/${title}-${Date.now()}.${fileExtension}`
-  )
+  );
 
-  const imgUploaded = await uploadBytes(imgRef, req.file.buffer)
+  const imgUploaded = await uploadBytes(imgRef, req.file.buffer);
 
   const newMovie = await Movie.create({
     title,
@@ -64,6 +69,12 @@ exports.createNewMovie = catchAsync(async (req, res, next) => {
     genre,
     imgUrl: imgUploaded.metadata.fullPath
   });
+
+   actors.map(async (actorId) => {
+    return await ActorMovies.create({ actorId, movieId: newMovie.id });
+  });
+
+ 
 
   res.status(200).json({
     status: 'success',
@@ -75,36 +86,37 @@ exports.createNewMovie = catchAsync(async (req, res, next) => {
 
 exports.updateMovie = catchAsync(async (req, res, next) => {
   try {
-    const { id } = req.params
+    const { id } = req.params;
     const data = filterObj(
       req.body,
       'title',
       'description',
       'duration',
       'genre'
-    )
+    );
     const movie = Movie.findOne({
       where: {
         id,
         status: 'active'
       }
-    })
+    });
     if (!movie) {
       res.status(404).json({
         status: 'error',
         mgs: 'Cant Update movie, invalid ID'
-      })
-      return
+      });
+      return;
     }
-    (await movie).update({...data})
+    (await movie).update({ ...data });
 
     res.status(204).json({
       status: 'success'
-    })
+    });
   } catch (error) {
     console.log(error);
   }
 });
+
 exports.deleteMovie = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const movies = Movie.findOne({
@@ -118,6 +130,6 @@ exports.deleteMovie = catchAsync(async (req, res, next) => {
     return;
   }
 
-  (await movies).update({status: 'delete'})
+  (await movies).update({ status: 'delete' });
   return res.status(204).json({ status: 'success' });
 });

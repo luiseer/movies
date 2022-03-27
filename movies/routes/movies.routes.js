@@ -1,5 +1,8 @@
 const express = require('express');
-const { validateSession, roleUserAdmin } = require('../middlewares/auth.middleware');
+const {
+  validateSession,
+  roleUserAdmin
+} = require('../middlewares/auth.middleware');
 
 const {
   getAllMovie,
@@ -17,7 +20,7 @@ router.use(validateSession);
 router
   .route('/')
   .get(getAllMovie)
-  .post(roleUserAdmin, upload.single('movieImg'), createNewMovie);
+  .post(roleUserAdmin, upload.single('img'), createNewMovie);
 
 router
   .route('/:id')

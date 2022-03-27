@@ -23,17 +23,16 @@ const Actors = sequelize.define('actor', {
   rating: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    defaultValue: 1
+    defaultValue: 0
   },
   awards: {
     type: DataTypes.STRING(100),
     allowNull: false,
-    defaultValue: 'Ariel'
+    defaultValue: 'Oscar'
   },
   profilePicUrl: {
     type: DataTypes.STRING(120),
-    allowNull: false,
-    defaultValue: 'url...'
+    allowNull: false
   },
   status: {
     type: DataTypes.STRING(50),
