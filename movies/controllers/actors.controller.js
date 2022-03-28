@@ -1,6 +1,5 @@
 const { ref, uploadBytes, getDownloadURL } = require('firebase/storage');
 
-
 const { Actors } = require('../models/actors.model');
 const { ActorMovies } = require('../models/actorMovies.model');
 const { Movie } = require('../models/movies.models');
@@ -16,10 +15,73 @@ exports.getAllActors = catchAsync(async (req, res, next) => {
     include: [{ model: Movie, through: ActorMovies }]
   });
 
+  const actorsPromises = actors.map(
+    async ({
+      id,
+      name,
+      country,
+      age,
+      rating,
+      awards,
+      profilePicUrl,
+      status,
+      createdAt,
+      updatedAt,
+      movies
+    }) => {
+      const imgRef = ref(storage, profilePicUrl);
+      const imgDownloadUrl = await getDownloadURL(imgRef);
+
+      const moviesPromises = movies.map(
+        async ({
+          id,
+          tilte,
+          description,
+          duration,
+          status,
+          imgUrl,
+          createdAt,
+          updatedAt
+        }) => {
+          const imgRef = ref(storage, imgUrl)
+          const imgDownloadUrl = await getDownloadURL(imgRef)
+
+          return {
+            id,
+            tilte,
+            description,
+            duration,
+            status,
+            imgUrl: imgDownloadUrl,
+            createdAt,
+            updatedAt
+          }
+        }
+      );
+      const resolveMovies = await Promise.all(moviesPromises)
+
+      return {
+        id,
+        name,
+        country,
+        age,
+        rating,
+        awards,
+        profilePicUrl: imgDownloadUrl,
+        status,
+        createdAt,
+        updatedAt,
+        movies: resolveMovies
+      }
+    }
+  );
+
+  const resolveActors = await Promise.all(actorsPromises)
+
   res.status(200).json({
     status: 'success',
     data: {
-      actors
+      actors: resolveActors
     }
   });
 });
@@ -61,7 +123,7 @@ exports.createNewActor = catchAsync(async (req, res, next) => {
     age,
     country,
     rating,
-    profilePicUrl: imgUploaded.metadata.fullPath,
+    profilePicUrl: imgUploaded.metadata.fullPath
   });
 
   res.status(201).json({

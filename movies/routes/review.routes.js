@@ -17,7 +17,7 @@ router.route('/').get(getAllReview).post(createReview);
 router
   .route('/:id')
   .get(getReviewById)
-  .patch(upDataReview)
+  .patch(roleUserAdmin, upDataReview)
   .delete(roleUserAdmin, deleteReview);
 
 module.exports = { reviewsRouter: router };

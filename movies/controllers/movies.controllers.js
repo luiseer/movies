@@ -13,13 +13,71 @@ const { storage } = require('../util/firebase');
 
 exports.getAllMovie = catchAsync(async (req, res, next) => {
   const movies = await Movie.findAll({
-    include: [{ model: Actors }],
-    where: { status: 'active' }
+    where: { status: 'active' },
+    include: [{ model: Actors }]
   });
+
+  const moviesPromises = movies.map(
+    async ({
+      id,
+      tilte,
+      description,
+      duration,
+      imgUrl,
+      createdAt,
+      updatedAt,
+      actors
+    }) => {
+      const imgRef = ref(storage, imgUrl);
+      const imgDownloadUrl = await getDownloadURL(imgRef);
+
+      const actorsPromises = actors.map(
+        async ({
+          id,
+          name,
+          country,
+          age,
+          rating,
+          awards,
+          profilePicUrl,
+          createdAt,
+          updatedAt
+        }) => {
+          const imgRef = ref(storage, profilePicUrl);
+          const imgDownloadUrl = await getDownloadURL(imgRef);
+
+          return {
+            id,
+            name,
+            country,
+            age,
+            rating,
+            awards,
+            profilePicUrl: imgDownloadUrl,
+            createdAt,
+            updatedAt
+          };
+        }
+      );
+      const resolveActors = await Promise.all(actorsPromises);
+
+      return {
+        id,
+        tilte,
+        description,
+        duration,
+        imgUrl: imgDownloadUrl,
+        createdAt,
+        updatedAt,
+        actors: resolveActors
+      };
+    }
+  );
+  const resolveMovies = await Promise.all(moviesPromises);
   res.status(200).json({
     status: 'success',
     data: {
-      movies
+      movies: resolveMovies
     }
   });
 });
@@ -54,7 +112,6 @@ exports.createNewMovie = catchAsync(async (req, res, next) => {
 
   const fileExtension = req.file.originalname.split('.')[1];
 
-
   const imgRef = ref(
     storage,
     `imgs/movies/${title}-${Date.now()}.${fileExtension}`
@@ -70,11 +127,9 @@ exports.createNewMovie = catchAsync(async (req, res, next) => {
     imgUrl: imgUploaded.metadata.fullPath
   });
 
-   actors.map(async (actorId) => {
+  actors.map(async (actorId) => {
     return await ActorMovies.create({ actorId, movieId: newMovie.id });
   });
-
- 
 
   res.status(200).json({
     status: 'success',
