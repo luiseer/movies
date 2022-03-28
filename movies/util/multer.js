@@ -8,7 +8,6 @@ const multerFileFilter = (req, file, cb) => {
 
   if (!file.mimetype.startsWith('image')) {
 
-    console.log(file);
     cb(new AppError(400, 'Must provide an image as a file'), false);
   } else {
     cb(null, true);

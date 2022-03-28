@@ -4,10 +4,11 @@ const { catchAsync } = require('../util/catchAsync');
 const { AppError } = require('../util/appError');
 const { filterObj } = require('../util/filterObj');
 const { User } = require('../models/user.model');
+const { Movie } = require('../models/movies.models');
 
 exports.getAllReview = catchAsync(async (req, res, next) => {
   const review = await Review.findAll({
-    include: [{model: User}],
+    include: [{model: User}, {model: Movie}],
     where:{
       status: 'active'
     }
