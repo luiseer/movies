@@ -1,4 +1,5 @@
 const express = require('express');
+const { validateSession, roleUserAdmin } = require('../middlewares/auth.middleware');
 
 const {
   getAllReview,
@@ -10,11 +11,13 @@ const {
 
 const router = express.Router();
 
+router.use(validateSession);
+
 router.route('/').get(getAllReview).post(createReview);
 router
   .route('/:id')
   .get(getReviewById)
-  .patch(upDataReview)
-  .delete(deleteReview);
+  .patch(roleUserAdmin, upDataReview)
+  .delete(roleUserAdmin, deleteReview);
 
 module.exports = { reviewsRouter: router };

@@ -4,10 +4,11 @@ const { catchAsync } = require('../util/catchAsync');
 const { AppError } = require('../util/appError');
 const { filterObj } = require('../util/filterObj');
 const { User } = require('../models/user.model');
+const { Movie } = require('../models/movies.models');
 
 exports.getAllReview = catchAsync(async (req, res, next) => {
   const review = await Review.findAll({
-    include: [{model: User}],
+    include: [{model: User}, {model: Movie}],
     where:{
       status: 'active'
     }
@@ -38,13 +39,16 @@ exports.getReviewById = catchAsync(async (req, res, next) => {
 });
 
 exports.createReview = catchAsync(async (req, res, next) => {
-  const { title, comment } = req.body;
-  if (!title || !comment) {
+  const { id } = req.body
+  const { title, comment, userid, movieid } = req.body;
+  if (!title || !comment || !userid || !movieid) {
     return next(new AppError(400, 'Must provide a title and comment'));
   }
   const newReview = await Review.create({
     title,
-    comment
+    comment,
+    userid,
+    movieid
   });
 
   res.status(200).json({

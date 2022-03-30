@@ -1,5 +1,5 @@
 const express = require('express');
-const { validateSession } = require('../middlewares/auth.middleware');
+const { validateSession,upDateUserByUser } = require('../middlewares/auth.middleware');
 
 const {
   getUserById,
@@ -17,12 +17,13 @@ router.post('/', createNewUser);
 
 router.use(validateSession);
 
-router.route('/').get(getAllUsers);
+router
+  .route('/').get(getAllUsers);
 
 router
   .route('/:id')
   .get(getUserById)
-  .patch(updateUser)
+  .patch(upDateUserByUser, updateUser)
   .delete(deleteUser);
 
 module.exports = { usersRouter: router };

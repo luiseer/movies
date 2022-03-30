@@ -8,11 +8,11 @@ const ActorMovies = sequelize.define('actormovie', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  actorId: {
+  actorid: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  movieId: {
+  movieid: {
     type: DataTypes.INTEGER,
     allowNull: false
   }

@@ -1,5 +1,11 @@
 const express = require('express');
-const { validateSession } = require('../middlewares/auth.middleware')
+
+const {
+  validateSession,
+  roleUserAdmin
+} = require('../middlewares/auth.middleware');
+
+const { upload } = require('../util/multer');
 
 const {
   getAllActors,
@@ -11,12 +17,17 @@ const {
 
 const router = express.Router();
 
-router.route('/').get(getAllActors).post(createNewActor);
+router.use(validateSession);
+
+router
+  .route('/')
+  .get(getAllActors)
+  .post(roleUserAdmin, upload.single('img'), createNewActor);
 
 router
   .route('/:id')
   .get(getActorById)
-  .delete(deleteActor)
-  .patch(updateActor);
+  .delete(roleUserAdmin, deleteActor)
+  .patch(roleUserAdmin, updateActor);
 
 module.exports = { actorsRouter: router };

@@ -9,7 +9,8 @@ const { filterObj } = require('../util/filterObj');
 
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   const user = await User.findAll({
-    where: { status: 'active' }
+    attributes: { exclude: ['password'] },
+    where: { status: 'active' },
   });
   res.status(200).json({
     status: 'success',
@@ -22,6 +23,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 exports.getUserById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const users = await User.findOne({
+    attributes: { exclude: ['password'] },
     where: { id, status: 'active' }
   });
   if (!users) {
@@ -38,8 +40,8 @@ exports.getUserById = catchAsync(async (req, res, next) => {
 
 exports.createNewUser = catchAsync(async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
+    const { name, email, password, role } = req.body;
+    if (!name || !email || !password, !role) {
       return next(
         new AppError(400, 'Must provide a valid name, email, password')
       );
@@ -47,18 +49,16 @@ exports.createNewUser = catchAsync(async (req, res, next) => {
 
     const salt = await bcrypt.genSalt(12);
 
-    const hashedPassword = await bcrypt.hash(
-      password,
-      salt
-    )
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     const newUser = await User.create({
       name,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      role
     });
 
-    newUser.password = undefined
+    newUser.password = undefined;
 
     res.status(200).json({
       status: 'success',
@@ -96,31 +96,27 @@ exports.loginUser = catchAsync(async (req, res, next) => {
 
 exports.updateUser = catchAsync(async (req, res, next) => {
   try {
-    const { id } = req.params
-    const data = filterObj(
-      req.body,
-      'name',
-      'email'
-    )
+    const { id } = req.params;
+    const data = filterObj(req.body, 'name', 'email');
     const user = User.findOne({
       where: {
         id,
         status: 'active'
       }
-    })
-  if (!user) {
-    res.status(404).json({
-      status: 'error',
-      mgs: 'Cant update user, invalid ID'
-    })
-    return
-  }
+    });
+    if (!user) {
+      res.status(404).json({
+        status: 'error',
+        mgs: 'Cant update user, invalid ID'
+      });
+      return;
+    }
 
-  await (await user).update({...data})
+    await (await user).update({ ...data });
 
-  res.status(204).json({
-    status: 'success'
-  })
+    res.status(204).json({
+      status: 'success'
+    });
   } catch (error) {
     console.log(error.message);
   }
@@ -129,6 +125,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 exports.deleteUser = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const users = await User.findOne({
+    attributes: { exclude: ['password'] },
     where: { id, status: 'active' }
   });
 

@@ -1,7 +1,6 @@
 const { app } = require('./app');
 const { initModels } = require('./util/initModels');
 
-// Utils
 const { sequelize } = require('./util/database');
 
 sequelize
